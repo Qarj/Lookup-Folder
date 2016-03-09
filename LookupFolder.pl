@@ -12,9 +12,11 @@ $VERSION = '0.00';
 
 use File::Basename;
 use Time::HiRes 'time';
+use Getopt::Long;
 
-## USAGE:
-## LookupFolder.pl \\IRON\C$\webinject TBA
+my ($opt_search, $opt_folder, $opt_filter, $opt_mode, $opt_age, $opt_decode, $opt_version, $opt_help);
+
+get_options();
 
 my $allmatches = 0;
 my $filematches = 0;
@@ -22,7 +24,6 @@ my $fileschecked = 0;
 
 die "\nno directory provided\n" unless defined $ARGV[0];
 
-#my $path = abs_path $ARGV[0];
 my $path = $ARGV[0];
 my $extension = $ARGV[1];
 my $target = $ARGV[2];
@@ -120,3 +121,81 @@ sub examine_file {
 
     return;
 }
+
+#------------------------------------------------------------------
+sub get_options {  #shell options
+
+    $opt_filter = '*';  # default file filter to all files
+    $opt_mode = 'stop'; # default mode to stop searching once a match is found
+    $opt_age = 10;      # default maximum age of files to search to be 10 minutes
+
+    Getopt::Long::Configure('bundling');
+    GetOptions(
+        's|search=s'  => \$opt_search,
+        'f|folder=s'   => \$opt_folder,
+        'x|filter=s'   => \$opt_filter,
+        'm|mode=s'   => \$opt_mode,
+        'a|age=i'   => \$opt_age,
+        'q|decode'   => \$opt_decode,
+        'v|V|version' => \$opt_version,
+        'h|help'      => \$opt_help,
+        )
+        or do {
+            print_usage();
+            exit;
+        };
+    if ($opt_version) {
+        print_version();
+        exit;
+    }
+
+    if ($opt_help) {
+        print_version();
+        print_usage();
+        exit;
+    }
+
+    if (not defined $opt_search) {
+        print "\nERROR: Search string[s] must be specified\n\n";
+        print_usage();
+        exit;
+    }
+
+    if (not defined $opt_folder) {
+        print "\nERROR: Target folder must be specified\n\n";
+        print_usage();
+        exit;
+    }
+    
+
+    return;
+}
+
+sub print_version {
+    print "\nLookupFolder version $VERSION\nFor more info: https://github.com/Qarj/LookupFolder\n\n";
+    return;
+}
+
+sub print_usage {
+    print <<'EOB'
+
+Usage: LookupFolder.pl <<options>>
+
+-s|--search  SEARCH STRINGS COMMA SEPARATED                 -s user1,my%20name
+-f|--folder  TARGET FOLDER TO SEARCH                        -f \\IRON\D$\email\pickup
+-x|--filter  FILE FILTER                                    -x *.eml
+-m|--mode    MODE - stop AFTER FIRST MATCH OR all           -m stop
+-a|--age     MAXIMUM AGE OF FILES TO SEARCH IN MINUTES      -a 15
+-q|--decode  DECODE QUOTED PRINTABLE (EMAIL FILES)          -q
+-v|--version                                                -v
+-h|--help                                                   -h
+
+or
+
+LookupFolder.pl -v|--version
+LookupFolder.pl -h|--help
+EOB
+;
+return;
+}
+#------------------------------------------------------------------
