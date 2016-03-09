@@ -14,21 +14,28 @@ use File::Basename;
 use Time::HiRes 'time';
 use Getopt::Long;
 
-my ($opt_search, $opt_folder, $opt_filter, $opt_mode, $opt_age, $opt_decode, $opt_version, $opt_help);
+my (@opt_search, $opt_folder, $opt_filter, $opt_mode, $opt_age, $opt_decode, $opt_version, $opt_help);
 
 get_options();
 
-my $allmatches = 0;
-my $filematches = 0;
-my $fileschecked = 0;
+#ToDo:
+# * read all the search strings into an array:   GetOptions ("library=s" => \@libfiles);
+# - decode escaped strings to actual characters - e.g. %22 to ", %20 to space and so on
+# - parse directory into arrays with last modified and filename
+# - entire file must be read into an array
+# - streaming mode? for matching across lines (probably not necessary?)
+# - decode quoted printable file
+# - check file for multiple parameters
 
-die "\nno directory provided\n" unless defined $ARGV[0];
+my $all_matches = 0;
+my $file_matches = 0;
+my $files_checked = 0;
 
 my $path = $ARGV[0];
 my $extension = $ARGV[1];
 my $target = $ARGV[2];
 
-my @filestocheck;
+my @files_to_check;
 
 if (!$extension) { die "\nNeed an extension - e.g. config\n"; }
 if (!$target) { die "\nNeed a word to search for - e.g. findthis\n"; }
@@ -46,7 +53,7 @@ build_list_of_files_to_check();
 
 search_all_files();
 
-print "\nFound $allmatches matches total in $filematches files out of $fileschecked files searched\n";
+print "\nFound $all_matches matches total in $file_matches files out of $files_checked files searched\n";
 
 #
 # end of script - subroutines follow
@@ -57,7 +64,7 @@ sub build_list_of_files_to_check {
 
     my $start_time = time;
 
-    @filestocheck = (`dir /S /B /A-D "$path$filter"`);
+    @files_to_check = (`dir /S /B /A-D "$path$filter"`);
 
     my $run_time = (int(1000 * (time - $start_time)) / 1000);
     print "Built file list in $run_time seconds\n";
@@ -70,7 +77,7 @@ sub search_all_files {
 
     my $start_time = time;
 
-    foreach my $checkfile (@filestocheck)
+    foreach my $checkfile (@files_to_check)
     {
         examine_file ($checkfile);
     }
@@ -104,8 +111,8 @@ sub examine_file {
 
             # for the first match, print out the filename along with the file match number
             if ($match == 1) {
-                $filematches = $filematches + 1;
-                print "\n["."$filematches".'] '."$filename:\n";
+                $file_matches = $file_matches + 1;
+                print "\n["."$file_matches".'] '."$filename:\n";
             }
 
             # print out the matching line
@@ -115,9 +122,9 @@ sub examine_file {
 
     close $handle;
 
-    $allmatches = $allmatches + $match;
+    $all_matches = $all_matches + $match;
 
-    $fileschecked = $fileschecked + 1;
+    $files_checked = $files_checked + 1;
 
     return;
 }
@@ -131,7 +138,7 @@ sub get_options {  #shell options
 
     Getopt::Long::Configure('bundling');
     GetOptions(
-        's|search=s'  => \$opt_search,
+        's|search=s'  => \@opt_search,
         'f|folder=s'   => \$opt_folder,
         'x|filter=s'   => \$opt_filter,
         'm|mode=s'   => \$opt_mode,
@@ -155,7 +162,7 @@ sub get_options {  #shell options
         exit;
     }
 
-    if (not defined $opt_search) {
+    if (not defined $opt_search[0]) {
         print "\nERROR: Search string[s] must be specified\n\n";
         print_usage();
         exit;
