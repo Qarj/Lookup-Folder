@@ -21,14 +21,15 @@ get_options();
 #ToDo:
 # * read all the search strings into an array:   GetOptions ("library=s" => \@libfiles);
 # - decode escaped strings to actual characters - e.g. %22 to ", %20 to space and so on
-# - parse directory into arrays with last modified and filename
-# - entire file must be read into an array
+# * parse directory into arrays with last modified and filename
+# * entire file must be read into an array
 # - streaming mode? for matching across lines (probably not necessary?)
 # - decode quoted printable file
-# - check file for multiple parameters
+# * check file for multiple parameters
 # - file creation time - allow for clock sync error
 
-my ($all_matches, $file_matches, $files_checked) = 0;
+my $file_matches = 0;
+my $files_checked = 0;
 my (@files_to_check, @files_creation_time);
 
 # show search
@@ -44,11 +45,10 @@ if (defined $opt_decode) { print " [decode quoted printable]"; }
 print "\n\n";
 
 build_list_of_files_to_check();
-exit;
 
 search_all_files();
 
-print "\nFound $all_matches matches total in $file_matches files out of $files_checked files searched\n";
+print "\nFound $file_matches matching files out of $files_checked files searched\n";
 
 #
 # end of script - subroutines follow
@@ -83,11 +83,11 @@ sub build_list_of_files_to_check {
     }
 
     # debug - check the file names captured
-    for my $j (0 .. $#files_to_check) {
-        print "$files_creation_time[$j] ";
-        print "$files_to_check[$j]\n";
-    }
-    print "\n";
+    #for my $j (0 .. $#files_to_check) {
+    #    print "$files_creation_time[$j] ";
+    #    print "$files_to_check[$j]\n";
+    #}
+    #print "\n";
 
     my $run_time = (int(1000 * (time - $start_time)) / 1000);
     print "Built file list in $run_time seconds\n";
@@ -121,33 +121,46 @@ sub examine_file {
     my $linux_file_name = $filename;
     $linux_file_name =~ s{\\}{/}g;
 
-    my $match = 0;
-
     open my $handle, '<', $linux_file_name or die "\n\nCANNOT OPEN FILE: $linux_file_name\n\n";
-
-    while (<$handle>) {
-
-        if ($_ =~ m/$opt_search[0]/i) {
-
-            # keep track of number of matches found
-            $match = $match + 1;
-
-            # for the first match, print out the filename along with the file match number
-            if ($match == 1) {
-                $file_matches = $file_matches + 1;
-                print "\n["."$file_matches".'] '."$filename:\n";
-            }
-
-            # print out the matching line
-            print $_, $/;
-        }
-    }
-
-    close $handle;
-
-    $all_matches = $all_matches + $match;
+    chomp (my @lines = <$handle>);
+    close $handle or die "\n\nCANNOT CLOSE FILE: $linux_file_name\n\n";
 
     $files_checked = $files_checked + 1;
+    print "\n["."$files_checked".'] '."$filename:\n";
+
+    foreach my $search (@opt_search) {
+
+        print "    $search ... ";
+
+        my $match = 0;
+
+        foreach my $line (@lines) {
+            if ($line =~ m/$search/i) {
+    
+                # search string has been found in this file
+                $match = 1;
+
+                print " FOUND\n";
+    
+                # print out the matching line
+                #print $line, $/;
+
+                last; # we only needed to find one match, and we found it
+            }
+        }
+        
+        if ($match) {
+            # great news
+        } else {
+            print " not found\n";
+            return; # this search string was not found in this file, so it is a fail
+        }        
+    }
+
+    # if we made it to here, it means all search strings were found in this file
+    $file_matches = $file_matches + 1;
+
+    print "    File $filename ... success - all search criteria found!\n";
 
     return;
 }
