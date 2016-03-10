@@ -26,30 +26,25 @@ get_options();
 # - streaming mode? for matching across lines (probably not necessary?)
 # - decode quoted printable file
 # - check file for multiple parameters
+# - file creation time - allow for clock sync error
 
-my $all_matches = 0;
-my $file_matches = 0;
-my $files_checked = 0;
+my ($all_matches, $file_matches, $files_checked) = 0;
+my (@files_to_check, @files_creation_time);
 
-my $path = $ARGV[0];
-my $extension = $ARGV[1];
-my $target = $ARGV[2];
-
-my @files_to_check;
-
-if (!$extension) { die "\nNeed an extension - e.g. config\n"; }
-if (!$target) { die "\nNeed a word to search for - e.g. findthis\n"; }
-
-
+# show search
 print "\n";
-print "Search base path  : $path\n";
-print "Search extension  : $extension\n";
-print "Search target for : $target [case insensitive]\n\n";
-
-# add on the *.txt extension or whatever supplied
-my $filter = '\*'."$extension";
+print "Search base path  : $opt_folder\n";
+foreach (@opt_search) {
+    print "Search target for : $_ \n";
+}
+print "Search mode       : $opt_mode\n";
+print "Max file age mins : $opt_age\n";
+print "Flags             :";                
+if (defined $opt_decode) { print " [decode quoted printable]"; }
+print "\n\n";
 
 build_list_of_files_to_check();
+exit;
 
 search_all_files();
 
@@ -63,8 +58,36 @@ print "\nFound $all_matches matches total in $file_matches files out of $files_c
 sub build_list_of_files_to_check {
 
     my $start_time = time;
+    
+    #dir folder /A-D /N /O-D /TC /-C
+    # /A-D  do not display directories
+    # /N    use new long list format with filenames on far right
+    # /O-D  sort by date/time with youngest first
+    # /TC   sort date/time is creation
+    # /-C   disable display of thousands separator for file size
+    # /4    display four-digit years
+    my @raw_files = (`dir /A-D /N /O-D /TC /-C /4 "$opt_folder"`);
 
-    @files_to_check = (`dir /S /B /A-D "$path$filter"`);
+    #foreach (@raw_files) {
+    #    print "$_\n";
+    #}
+
+    my $i = 0;
+    foreach (@raw_files) {
+        # regex matches date, time, file size then anything after that is the file name
+        if ($_ =~ m{^[\d/]+[ ]+([\d:]+)[ ]+[\d]+[ ](.+)}i ) {
+            $files_creation_time[$i] = $1;
+            $files_to_check[$i] = $2;
+            $i++;
+        }
+    }
+
+    # debug - check the file names captured
+    for my $j (0 .. $#files_to_check) {
+        print "$files_creation_time[$j] ";
+        print "$files_to_check[$j]\n";
+    }
+    print "\n";
 
     my $run_time = (int(1000 * (time - $start_time)) / 1000);
     print "Built file list in $run_time seconds\n";
@@ -104,7 +127,7 @@ sub examine_file {
 
     while (<$handle>) {
 
-        if ($_ =~ m/$target/i) {
+        if ($_ =~ m/$opt_search[0]/i) {
 
             # keep track of number of matches found
             $match = $match + 1;
@@ -132,7 +155,6 @@ sub examine_file {
 #------------------------------------------------------------------
 sub get_options {  #shell options
 
-    $opt_filter = '*';  # default file filter to all files
     $opt_mode = 'stop'; # default mode to stop searching once a match is found
     $opt_age = 10;      # default maximum age of files to search to be 10 minutes
 
@@ -140,7 +162,6 @@ sub get_options {  #shell options
     GetOptions(
         's|search=s'  => \@opt_search,
         'f|folder=s'   => \$opt_folder,
-        'x|filter=s'   => \$opt_filter,
         'm|mode=s'   => \$opt_mode,
         'a|age=i'   => \$opt_age,
         'q|decode'   => \$opt_decode,
@@ -188,14 +209,13 @@ sub print_usage {
 
 Usage: LookupFolder.pl <<options>>
 
--s|--search  SEARCH STRINGS COMMA SEPARATED                 -s user1,my%20name
--f|--folder  TARGET FOLDER TO SEARCH                        -f \\IRON\D$\email\pickup
--x|--filter  FILE FILTER                                    -x *.eml
--m|--mode    MODE - stop AFTER FIRST MATCH OR all           -m stop
--a|--age     MAXIMUM AGE OF FILES TO SEARCH IN MINUTES      -a 15
--q|--decode  DECODE QUOTED PRINTABLE (EMAIL FILES)          -q
--v|--version                                                -v
--h|--help                                                   -h
+-s|--search     SEARCH STRING, MULTIPLE ACCEPTED      -s user1 -s my%20name
+-f|--folder     TARGET FOLDER TO SEARCH               -f \\IRON\D$\email\pickup\*.eml
+-m|--mode       MODE - stop AFTER FIRST MATCH OR all  -m stop
+-a|--age        MAXIMUM AGE OF FILES - MINUTES        -a 15
+-q|--decode     DECODE QUOTED PRINTABLE (EMAIL FILES) -q
+-v|--version                                          -v
+-h|--help                                             -h
 
 or
 
