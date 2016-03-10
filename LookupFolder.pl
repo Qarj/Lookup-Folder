@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use vars qw/ $VERSION /;
 
-$VERSION = '0.00';
+$VERSION = '0.01';
 
 use File::Basename;
 use Time::HiRes 'time';
@@ -160,7 +160,7 @@ sub examine_file {
     # if we made it to here, it means all search strings were found in this file
     $file_matches = $file_matches + 1;
 
-    print "    File $filename ... success - all search criteria found!\n";
+    print "    Success '$filename' contains all search criteria!\n";
 
     return;
 }

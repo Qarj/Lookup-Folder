@@ -6,4 +6,5 @@ Tim Buckland, https://github.com/Qarj/LookupFolder
 
 ## Release History:
 
-Pre-release - does not meet the goals for a release version yet
+### Version 0.01 - Mar 10, 2016
+* search files in a folder for multiple criteria
