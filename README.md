@@ -1,4 +1,4 @@
-# LookupFolder 0.03
+# LookupFolder 0.04
 Search a Windows network folder for files containing multiple strings.
 
 The search strings are assumed to be URL encoded. There is an option to indicate
@@ -17,7 +17,6 @@ LookupFolder.pl --search print --search user1 --folder .
 Search base path  : .
 Search target for : print
 Search target for : user1
-Search mode       : stop
 Max file age mins : 10
 Flags             :
 
@@ -52,7 +51,6 @@ LookupFolder.pl --search forgotten --search customer --folder .\*.eml --decode
 Search base path  : .\*.eml
 Search target for : forgotten
 Search target for : customer
-Search mode       : stop
 Max file age mins : 10
 Flags             : [decode quoted printable]
 
@@ -81,7 +79,6 @@ LookupFolder.pl --search reset%20your%20password --search customer --folder .\18
 Search base path  : .\180.eml
 Search target for : reset your password
 Search target for : customer
-Search mode       : stop
 Max file age mins : 10
 Flags             : [decode quoted printable]
 
@@ -97,3 +94,25 @@ Searched files in 0.003 seconds
 Found 1 matching files out of 1 files searched
 ```
 
+### Example 4 -- stop after first matching file found
+
+```
+LookupFolder.pl --search reset%20your%20password --search customer --folder .\*.eml --decode --stop
+
+Search base path  : .\*.eml
+Search target for : reset your password
+Search target for : customer
+Max file age mins : 10
+Flags             : [stop] [decode quoted printable]
+
+Built file list in 0.005 seconds
+
+[1] 180_qponly.eml:
+    reset your password ...  FOUND
+    customer ...  FOUND
+    Success '180_qponly.eml' contains all search criteria!
+
+Searched files in 0 seconds
+
+Found 1 matching files out of 1 files searched
+```

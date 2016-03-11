@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use vars qw/ $VERSION /;
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 use File::Basename;
 use Time::HiRes 'time';
@@ -17,7 +17,7 @@ use MIME::QuotedPrint; # for decoding quoted-printable
 use File::Slurp;
 use URI::Escape; # to convert the URL encoded search string to normal
 
-my (@opt_search, $opt_folder, $opt_filter, $opt_mode, $opt_age, $opt_decode, $opt_version, $opt_help);
+my (@opt_search, $opt_folder, $opt_filter, $opt_stop, $opt_age, $opt_decode, $opt_version, $opt_help);
 
 get_options();
 
@@ -25,12 +25,12 @@ decode_search_strings();
 
 #ToDo:
 # * read all the search strings into an array:   GetOptions ("library=s" => \@libfiles);
-# - decode escaped strings to actual characters - e.g. %22 to ", %20 to space and so on
+# * decode escaped strings to actual characters - e.g. %22 to ", %20 to space and so on
 # * parse directory into arrays with last modified and filename
 # * entire file must be read into a string
 # * decode quoted printable file
 # * check file for multiple parameters
-# - stop searching on first file match
+# * stop searching on first file match
 # - check file creation time
 # - file creation time - allow for clock sync error
 
@@ -47,9 +47,9 @@ print "Search base path  : $opt_folder\n";
 foreach (@opt_search) {
     print "Search target for : $_ \n";
 }
-print "Search mode       : $opt_mode\n";
 print "Max file age mins : $opt_age\n";
 print "Flags             :";                
+if (defined $opt_stop) { print " [stop]"; }
 if (defined $opt_decode) { print " [decode quoted printable]"; }
 print "\n\n";
 
@@ -112,6 +112,10 @@ sub search_all_files {
     foreach my $checkfile (@files_to_check)
     {
         examine_file ($checkfile);
+        if (defined $opt_stop && ($file_matches > 0) ) {
+            # option to stop after first match is enabled ...
+            last; # ... so we hot foot it outa here
+        }
     }
 
     my $run_time = (int(1000 * (time - $start_time)) / 1000);
@@ -180,15 +184,14 @@ sub decode_search_strings {  # the supplied search strings are assumed to be URL
 #------------------------------------------------------------------
 sub get_options {  #shell options
 
-    $opt_mode = 'stop'; # default mode to stop searching once a match is found
     $opt_age = 10;      # default maximum age of files to search to be 10 minutes
 
     Getopt::Long::Configure('bundling');
     GetOptions(
         's|search=s'  => \@opt_search,
         'f|folder=s'   => \$opt_folder,
-        'm|mode=s'   => \$opt_mode,
         'a|age=i'   => \$opt_age,
+        't|stop'   => \$opt_stop,
         'q|decode'   => \$opt_decode,
         'v|V|version' => \$opt_version,
         'h|help'      => \$opt_help,
@@ -234,13 +237,13 @@ sub print_usage {
 
 Usage: LookupFolder.pl <<options>>
 
--s|--search     SEARCH STRING, MULTIPLE ACCEPTED      -s user1 -s my%20name
--f|--folder     TARGET FOLDER TO SEARCH               -f \\IRON\D$\email\pickup\*.eml
--m|--mode       MODE - stop AFTER FIRST MATCH OR all  -m stop
--a|--age        MAXIMUM AGE OF FILES - MINUTES        -a 15
--q|--decode     DECODE QUOTED PRINTABLE (EMAIL FILES) -q
--v|--version                                          -v
--h|--help                                             -h
+-s|--search     SEARCH STRING, MANY OK    --search user1 --search my%20name
+-f|--folder     TARGET FOLDER TO SEARCH   --folder \\IRON\D$\email\pickup\*.eml
+-a|--age        MAX AGE OF FILES - MINS   --age 15
+-t|--stop       STOP AFTER FIRST MATCH    --stop
+-q|--decode     DECODE QUOTED PRINTABLE   --decode
+-v|--version                              -v
+-h|--help                                 -h
 
 or
 

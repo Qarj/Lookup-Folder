@@ -15,3 +15,5 @@ Tim Buckland, https://github.com/Qarj/LookupFolder
 ### Version 0.03 - Mar 11, 2016
 * search strings are assumed to be URL encoded - to support spaces and other special characters
 
+### Version 0.04 - Mar 11, 2016
+* stop after first matching file found
