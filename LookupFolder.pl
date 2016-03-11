@@ -130,7 +130,6 @@ sub examine_file {
     my $text = read_file($filename);
 
     if (defined $opt_decode) {
-        print "\nDECODING\n";
         $text = decode_qp($text); ## decode the response output
     }
     
