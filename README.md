@@ -1,4 +1,4 @@
-# LookupFolder 0.02
+# LookupFolder 0.03
 Search a Windows network folder for files containing multiple strings.
 
 The search strings are assumed to be URL encoded. There is an option to indicate
