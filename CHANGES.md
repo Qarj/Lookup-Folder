@@ -11,3 +11,7 @@ Tim Buckland, https://github.com/Qarj/LookupFolder
 
 ### Version 0.02 - Mar 11, 2016
 * option to decoded quoted printable files implemented
+
+### Version 0.03 - Mar 11, 2016
+* search strings are assumed to be URL encoded - to support spaces and other special characters
+

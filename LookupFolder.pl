@@ -13,12 +13,15 @@ $VERSION = '0.02';
 use File::Basename;
 use Time::HiRes 'time';
 use Getopt::Long;
-use MIME::QuotedPrint; ## for decoding quoted-printable
+use MIME::QuotedPrint; # for decoding quoted-printable
 use File::Slurp;
+use URI::Escape; # to convert the URL encoded search string to normal
 
 my (@opt_search, $opt_folder, $opt_filter, $opt_mode, $opt_age, $opt_decode, $opt_version, $opt_help);
 
 get_options();
+
+decode_search_strings();
 
 #ToDo:
 # * read all the search strings into an array:   GetOptions ("library=s" => \@libfiles);
@@ -166,7 +169,14 @@ sub examine_file {
 
     return;
 }
+#------------------------------------------------------------------
+sub decode_search_strings {  # the supplied search strings are assumed to be URL encoded
 
+    foreach (@opt_search) {
+        $_ = uri_unescape($_);
+    }
+
+}
 #------------------------------------------------------------------
 sub get_options {  #shell options
 

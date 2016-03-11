@@ -1,5 +1,10 @@
 # LookupFolder 0.02
-Search a Windows network folder for files containing multiple strings
+Search a Windows network folder for files containing multiple strings.
+
+The search strings are assumed to be URL encoded. There is an option to indicate
+that the files are encoded as quoted printable and should be decoded.
+
+This script is designed to be as fast as possible over WAN network shares.
 
 ### Example 1
 ```
@@ -39,7 +44,7 @@ Found 1 matching files out of 4 files searched
 
 ```
 
-### Example 2
+### Example 2 - decode quoted printable files
 
 ```
 LookupFolder.pl --search forgotten --search customer --folder .\*.eml --decode
@@ -66,5 +71,29 @@ Built file list in 0.005 seconds
 Searched files in 0 seconds
 
 Found 2 matching files out of 2 files searched
+```
+
+### Example 3 - search strings are URL encoded
+
+```
+LookupFolder.pl --search reset%20your%20password --search customer --folder .\180.eml --decode
+
+Search base path  : .\180.eml
+Search target for : reset your password
+Search target for : customer
+Search mode       : stop
+Max file age mins : 10
+Flags             : [decode quoted printable]
+
+Built file list in 0.005 seconds
+
+[1] 180.eml:
+    reset your password ...  FOUND
+    customer ...  FOUND
+    Success '180.eml' contains all search criteria!
+
+Searched files in 0.003 seconds
+
+Found 1 matching files out of 1 files searched
 ```
 
