@@ -1,4 +1,4 @@
-# LookupFolder 0.01
+# LookupFolder 0.02
 Search a Windows network folder for files containing multiple strings
 
 ### Example

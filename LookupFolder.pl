@@ -8,11 +8,13 @@ use strict;
 use warnings;
 use vars qw/ $VERSION /;
 
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 use File::Basename;
 use Time::HiRes 'time';
 use Getopt::Long;
+use MIME::QuotedPrint; ## for decoding quoted-printable
+use File::Slurp;
 
 my (@opt_search, $opt_folder, $opt_filter, $opt_mode, $opt_age, $opt_decode, $opt_version, $opt_help);
 
@@ -22,11 +24,15 @@ get_options();
 # * read all the search strings into an array:   GetOptions ("library=s" => \@libfiles);
 # - decode escaped strings to actual characters - e.g. %22 to ", %20 to space and so on
 # * parse directory into arrays with last modified and filename
-# * entire file must be read into an array
-# - streaming mode? for matching across lines (probably not necessary?)
-# - decode quoted printable file
+# * entire file must be read into a string
+# * decode quoted printable file
 # * check file for multiple parameters
+# - stop searching on first file match
+# - check file creation time
 # - file creation time - allow for clock sync error
+
+#Example:
+#LookupFolder.pl --search forgotten --search customer --folder .\*.eml
 
 my $file_matches = 0;
 my $files_checked = 0;
@@ -121,9 +127,13 @@ sub examine_file {
     my $linux_file_name = $filename;
     $linux_file_name =~ s{\\}{/}g;
 
-    open my $handle, '<', $linux_file_name or die "\n\nCANNOT OPEN FILE: $linux_file_name\n\n";
-    chomp (my @lines = <$handle>);
-    close $handle or die "\n\nCANNOT CLOSE FILE: $linux_file_name\n\n";
+    my $text = read_file($filename);
+
+    if (defined $opt_decode) {
+        print "\nDECODING\n";
+        $text = decode_qp($text); ## decode the response output
+    }
+    
 
     $files_checked = $files_checked + 1;
     print "\n["."$files_checked".'] '."$filename:\n";
@@ -134,19 +144,12 @@ sub examine_file {
 
         my $match = 0;
 
-        foreach my $line (@lines) {
-            if ($line =~ m/$search/i) {
-    
-                # search string has been found in this file
-                $match = 1;
+        if ($text =~ m/$search/i) {
 
-                print " FOUND\n";
-    
-                # print out the matching line
-                #print $line, $/;
+            # search string has been found in this file
+            $match = 1;
 
-                last; # we only needed to find one match, and we found it
-            }
+            print " FOUND\n";
         }
         
         if ($match) {
