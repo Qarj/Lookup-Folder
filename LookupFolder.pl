@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use vars qw/ $VERSION /;
 
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 use File::Basename;
 use Time::HiRes 'time';
@@ -96,16 +96,15 @@ sub search_all_files {
         $files_checked = $files_checked + 1;
         print "\n["."$files_checked".'] ';
 
+        my $file_age_mins = sprintf '%.1f', ($current_time - $files_creation_time[$i]) / 60;
+        print "(age: $file_age_mins mins) ";
         if (defined $opt_max_age) {
-            my $file_age_mins = sprintf '%.1f', ($current_time - $files_creation_time[$i]) / 60;
-            print "(age: $file_age_mins mins) ";
             if ($file_age_mins > ($opt_max_age)) {
                 print "$files_to_check[$i] - TOO OLD - REMAINGING FILES THIS OLD OR OLDER, STOPPING...\n";
                 last;
-            } else {
-                print "$files_to_check[$i]\n";
             }
         }
+        print "$files_to_check[$i]\n";
 
         examine_file ($files_to_check[$i]);
         if (defined $opt_stop && ($file_matches > 0) ) {
