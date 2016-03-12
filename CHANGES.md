@@ -20,3 +20,7 @@ Tim Buckland, https://github.com/Qarj/LookupFolder
 
 ### Version 0.05 - Mar 12, 2016
 * examine file age and only search files younger than a certain age
+
+### Version 0.06 - Mar 12, 2016
+* major bug fixed - only worked for current directory - oops!!
+

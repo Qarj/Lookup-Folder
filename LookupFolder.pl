@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use vars qw/ $VERSION /;
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 use File::Basename;
 use Time::HiRes 'time';
@@ -126,13 +126,9 @@ sub search_all_files {
 sub examine_file {
     my ($filename) = @_;
 
-    chomp $filename; # remove trailing \n
+    my $raw_folder = dirname($opt_folder.'dummy');
 
-    # swap back slash to forward slash
-    my $linux_file_name = $filename;
-    $linux_file_name =~ s{\\}{/}g;
-
-    my $text = read_file($filename);
+    my $text = read_file($raw_folder.q{\\}.$filename);
 
     if (defined $opt_decode) {
         $text = decode_qp($text); ## decode the response output

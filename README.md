@@ -1,4 +1,4 @@
-# LookupFolder 0.05
+# LookupFolder 0.06
 Search a Windows network folder for files containing multiple strings.
 
 The search strings are assumed to be URL encoded. There is an option to indicate
@@ -6,13 +6,16 @@ that the files are encoded as quoted printable and should be decoded.
 
 This script is designed to be as fast as possible over WAN network shares.
 
+Be sure to put final \ if you are referring to folder rather than a file.
+That is to say `C:\Windows\` and not `C:\Windows`. 
+
 WARNING - Dates returned by Windows DIR command are assumed to be in European date format.
 
 ### Example 1
 ```
-LookupFolder.pl --search print --search user1 --folder .
+LookupFolder.pl --search print --search user1 --folder .\
 
-Search base path  : .
+Search base path  : .\
 Search target for : print
 Search target for : user1
 Max file age mins : none
