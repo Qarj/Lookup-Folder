@@ -24,24 +24,13 @@ get_options();
 
 decode_search_strings();
 
-#ToDo:
-# * read all the search strings into an array:   GetOptions ("library=s" => \@libfiles);
-# * decode escaped strings to actual characters - e.g. %22 to ", %20 to space and so on
-# * parse directory into arrays with last modified and filename
-# * entire file must be read into a string
-# * decode quoted printable file
-# * check file for multiple parameters
-# * stop searching on first file match
-# - check file creation time
-# - file creation time - allow for clock sync error
-
 #Example:
 #LookupFolder.pl --search forgotten --search customer --folder .\*.eml
 
 my $file_matches = 0;
 my $files_checked = 0;
 my (@files_to_check, @files_creation_time);
-my $current_time = Time::Piece->new; 
+my $current_time = Time::Piece->new;
 
 show_search_options();
 
@@ -59,7 +48,7 @@ print "\nFound $file_matches matching files out of $files_checked files searched
 sub build_list_of_files_to_check {
 
     my $start_time = time;
-    
+
     #dir folder /A-D /N /O-D /TC /-C
     # /A-D  do not display directories
     # /N    use new long list format with filenames on far right
@@ -93,7 +82,7 @@ sub build_list_of_files_to_check {
 
     my $run_time = (int(1000 * (time - $start_time)) / 1000);
     print "Built file list in $run_time seconds\n";
-    
+
     return;
 }
 
@@ -104,13 +93,20 @@ sub search_all_files {
 
     for my $i (0 .. $#files_to_check)
     {
+        $files_checked = $files_checked + 1;
+        print "\n["."$files_checked".'] ';
+
         if (defined $opt_max_age) {
             my $file_age_mins = sprintf('%.1f', ($current_time - $files_creation_time[$i]) / 60);
-            print "FILE AGE: $file_age_mins";
+            print "(age: $file_age_mins mins) ";
             if ($file_age_mins > ($opt_max_age)) {
-                print "FILE TOO OLD - $file_age_mins \n";
+                print "$files_to_check[$i] - TOO OLD - REMAINGING FILES THIS OLD OR OLDER, STOPPING...\n";
+                last;
+            } else {
+                print "$files_to_check[$i]\n";
             }
         }
+
         examine_file ($files_to_check[$i]);
         if (defined $opt_stop && ($file_matches > 0) ) {
             # option to stop after first match is enabled ...
@@ -139,10 +135,6 @@ sub examine_file {
     if (defined $opt_decode) {
         $text = decode_qp($text); ## decode the response output
     }
-    
-
-    $files_checked = $files_checked + 1;
-    print "\n["."$files_checked".'] '."$filename:\n";
 
     foreach my $search (@opt_search) {
 
@@ -157,13 +149,13 @@ sub examine_file {
 
             print " FOUND\n";
         }
-        
+
         if ($match) {
             # great news
         } else {
             print " not found\n";
             return; # this search string was not found in this file, so it is a fail
-        }        
+        }
     }
 
     # if we made it to here, it means all search strings were found in this file
@@ -197,7 +189,7 @@ sub show_search_options {
         print "none\n";
     }
 
-    print "Flags             :";                
+    print "Flags             :";
     if (defined $opt_stop) { print " [stop]"; }
     if (defined $opt_decode) { print " [decode quoted printable]"; }
     print "\n\n";
@@ -244,7 +236,6 @@ sub get_options {  #shell options
         print_usage();
         exit;
     }
-    
 
     return;
 }
