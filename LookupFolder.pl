@@ -18,7 +18,7 @@ use MIME::QuotedPrint; # for decoding quoted-printable
 use File::Slurp;
 use URI::Escape; # to convert the URL encoded search string to normal
 
-my (@opt_search, $opt_folder, $opt_filter, $opt_stop, $opt_max_age, $opt_decode, $opt_version, $opt_help);
+my (@opt_search, $opt_folder, $opt_stop, $opt_max_age, $opt_decode, $opt_version, $opt_help);
 
 get_options();
 
@@ -66,7 +66,7 @@ sub build_list_of_files_to_check {
     foreach (@raw_files) {
         # regex matches date, time, file size then anything after that is the file name
         if ($_ =~ m{^([\d/]+[ ]+[\d:]+)[ ]+[\d]+[ ](.+)}i ) {
-            $files_creation_time[$i] = Time::Piece->strptime($1, '%d/%m/%Y  %H:%M'); # european date format
+            $files_creation_time[$i] = Time::Piece->strptime($1, '%d/%m/%Y  %H:%M'); # european date format assumed
             $files_to_check[$i] = $2;
             #print "$files_creation_time[$i]:$files_to_check[$i]\n";
             $i++;
@@ -97,7 +97,7 @@ sub search_all_files {
         print "\n["."$files_checked".'] ';
 
         if (defined $opt_max_age) {
-            my $file_age_mins = sprintf('%.1f', ($current_time - $files_creation_time[$i]) / 60);
+            my $file_age_mins = sprintf '%.1f', ($current_time - $files_creation_time[$i]) / 60;
             print "(age: $file_age_mins mins) ";
             if ($file_age_mins > ($opt_max_age)) {
                 print "$files_to_check[$i] - TOO OLD - REMAINGING FILES THIS OLD OR OLDER, STOPPING...\n";
@@ -172,6 +172,7 @@ sub decode_search_strings {  # the supplied search strings are assumed to be URL
         $_ = uri_unescape($_);
     }
 
+    return;
 }
 
 sub show_search_options {
@@ -182,19 +183,19 @@ sub show_search_options {
         print "Search target for : $_ \n";
     }
 
-    print "Max file age mins : ";
+    print 'Max file age mins : ';
     if (defined $opt_max_age) {
         print "$opt_max_age\n";
     } else {
         print "none\n";
     }
 
-    print "Flags             :";
-    if (defined $opt_stop) { print " [stop]"; }
-    if (defined $opt_decode) { print " [decode quoted printable]"; }
+    print 'Flags             :';
+    if (defined $opt_stop) { print ' [stop]'; }
+    if (defined $opt_decode) { print ' [decode quoted printable]'; }
     print "\n\n";
 
-return;
+    return;
 }
 
 #------------------------------------------------------------------
