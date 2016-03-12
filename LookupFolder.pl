@@ -12,12 +12,13 @@ $VERSION = '0.04';
 
 use File::Basename;
 use Time::HiRes 'time';
+use Time::Piece;
 use Getopt::Long;
 use MIME::QuotedPrint; # for decoding quoted-printable
 use File::Slurp;
 use URI::Escape; # to convert the URL encoded search string to normal
 
-my (@opt_search, $opt_folder, $opt_filter, $opt_stop, $opt_age, $opt_decode, $opt_version, $opt_help);
+my (@opt_search, $opt_folder, $opt_filter, $opt_stop, $opt_max_age, $opt_decode, $opt_version, $opt_help);
 
 get_options();
 
@@ -40,18 +41,9 @@ decode_search_strings();
 my $file_matches = 0;
 my $files_checked = 0;
 my (@files_to_check, @files_creation_time);
+my $current_time = Time::Piece->new; 
 
-# show search
-print "\n";
-print "Search base path  : $opt_folder\n";
-foreach (@opt_search) {
-    print "Search target for : $_ \n";
-}
-print "Max file age mins : $opt_age\n";
-print "Flags             :";                
-if (defined $opt_stop) { print " [stop]"; }
-if (defined $opt_decode) { print " [decode quoted printable]"; }
-print "\n\n";
+show_search_options();
 
 build_list_of_files_to_check();
 
@@ -84,9 +76,10 @@ sub build_list_of_files_to_check {
     my $i = 0;
     foreach (@raw_files) {
         # regex matches date, time, file size then anything after that is the file name
-        if ($_ =~ m{^[\d/]+[ ]+([\d:]+)[ ]+[\d]+[ ](.+)}i ) {
-            $files_creation_time[$i] = $1;
+        if ($_ =~ m{^([\d/]+[ ]+[\d:]+)[ ]+[\d]+[ ](.+)}i ) {
+            $files_creation_time[$i] = Time::Piece->strptime($1, '%d/%m/%Y  %H:%M'); # european date format
             $files_to_check[$i] = $2;
+            #print "$files_creation_time[$i]:$files_to_check[$i]\n";
             $i++;
         }
     }
@@ -109,9 +102,16 @@ sub search_all_files {
 
     my $start_time = time;
 
-    foreach my $checkfile (@files_to_check)
+    for my $i (0 .. $#files_to_check)
     {
-        examine_file ($checkfile);
+        if (defined $opt_max_age) {
+            my $file_age_mins = sprintf('%.1f', ($current_time - $files_creation_time[$i]) / 60);
+            print "FILE AGE: $file_age_mins";
+            if ($file_age_mins > ($opt_max_age)) {
+                print "FILE TOO OLD - $file_age_mins \n";
+            }
+        }
+        examine_file ($files_to_check[$i]);
         if (defined $opt_stop && ($file_matches > 0) ) {
             # option to stop after first match is enabled ...
             last; # ... so we hot foot it outa here
@@ -181,16 +181,38 @@ sub decode_search_strings {  # the supplied search strings are assumed to be URL
     }
 
 }
+
+sub show_search_options {
+    print "\n";
+    print "Search base path  : $opt_folder\n";
+
+    foreach (@opt_search) {
+        print "Search target for : $_ \n";
+    }
+
+    print "Max file age mins : ";
+    if (defined $opt_max_age) {
+        print "$opt_max_age\n";
+    } else {
+        print "none\n";
+    }
+
+    print "Flags             :";                
+    if (defined $opt_stop) { print " [stop]"; }
+    if (defined $opt_decode) { print " [decode quoted printable]"; }
+    print "\n\n";
+
+return;
+}
+
 #------------------------------------------------------------------
 sub get_options {  #shell options
-
-    $opt_age = 10;      # default maximum age of files to search to be 10 minutes
 
     Getopt::Long::Configure('bundling');
     GetOptions(
         's|search=s'  => \@opt_search,
         'f|folder=s'   => \$opt_folder,
-        'a|age=i'   => \$opt_age,
+        'm|max_age=i'   => \$opt_max_age,
         't|stop'   => \$opt_stop,
         'q|decode'   => \$opt_decode,
         'v|V|version' => \$opt_version,
@@ -239,7 +261,7 @@ Usage: LookupFolder.pl <<options>>
 
 -s|--search     SEARCH STRING, MANY OK    --search user1 --search my%20name
 -f|--folder     TARGET FOLDER TO SEARCH   --folder \\IRON\D$\email\pickup\*.eml
--a|--age        MAX AGE OF FILES - MINS   --age 15
+-m|--max_age    MAX AGE OF FILES - MINS   --max_age 15
 -t|--stop       STOP AFTER FIRST MATCH    --stop
 -q|--decode     DECODE QUOTED PRINTABLE   --decode
 -v|--version                              -v

@@ -94,7 +94,7 @@ Searched files in 0.003 seconds
 Found 1 matching files out of 1 files searched
 ```
 
-### Example 4 -- stop after first matching file found
+### Example 4 - stop after first matching file found
 
 ```
 LookupFolder.pl --search reset%20your%20password --search customer --folder .\*.eml --decode --stop
