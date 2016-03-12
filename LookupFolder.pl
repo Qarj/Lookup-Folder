@@ -27,6 +27,9 @@ decode_search_strings();
 #Example:
 #LookupFolder.pl --search forgotten --search customer --folder .\*.eml
 
+#To Implement:
+# - determine date format - use: echo. | date
+
 my $file_matches = 0;
 my $files_checked = 0;
 my (@files_to_check, @files_creation_time);
