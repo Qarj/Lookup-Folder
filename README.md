@@ -1,4 +1,4 @@
-# LookupFolder 0.06
+# Lookup-Folder 0.06
 Search a Windows network folder for files containing multiple strings.
 
 The search strings are assumed to be URL encoded. There is an option to indicate
@@ -13,7 +13,7 @@ WARNING - Dates returned by Windows DIR command are assumed to be in European da
 
 ### Example 1
 ```
-LookupFolder.pl --search print --search user1 --folder .\
+Lookup-Folder.pl --search print --search user1 --folder .\
 
 Search base path  : .\
 Search target for : print
@@ -47,10 +47,10 @@ Built file list in 0.005 seconds
     print ...  FOUND
     user1 ...  not found
 
-[8] (age: 4093.2 mins) LookupFolder.pl
+[8] (age: 4093.2 mins) Lookup-Folder.pl
     print ...  FOUND
     user1 ...  FOUND
-    Success 'LookupFolder.pl' contains all search criteria!
+    Success 'Lookup-Folder.pl' contains all search criteria!
 
 [9] (age: 4093.2 mins) README.md
     print ...  FOUND
@@ -66,7 +66,7 @@ Found 2 matching files out of 9 files searched
 ### Example 2 - decode quoted printable files
 
 ```
-LookupFolder.pl --search forgotten --search customer --folder .\*.eml --decode
+Lookup-Folder.pl --search forgotten --search customer --folder .\*.eml --decode
 
 Search base path  : .\*.eml
 Search target for : forgotten
@@ -102,7 +102,7 @@ Found 3 matching files out of 4 files searched
 ### Example 3 - search strings are URL encoded
 
 ```
-LookupFolder.pl --search reset%20your%20password --search customer --folder .\180.eml --decode
+Lookup-Folder.pl --search reset%20your%20password --search customer --folder .\180.eml --decode
 
 Search base path  : .\180.eml
 Search target for : reset your password
@@ -125,7 +125,7 @@ Found 1 matching files out of 1 files searched
 ### Example 4 - stop after first matching file found
 
 ```
-LookupFolder.pl --search reset%20your%20password --search customer --folder .\*.eml --decode --stop
+Lookup-Folder.pl --search reset%20your%20password --search customer --folder .\*.eml --decode --stop
 
 Search base path  : .\*.eml
 Search target for : reset your password
@@ -154,7 +154,7 @@ Found 1 matching files out of 3 files searched
 ### Example 5 - stop if files too old
 
 ```
-LookupFolder.pl --search reset%20your%20password --search customer --folder .\*.eml --decode --stop --max_age 1200
+Lookup-Folder.pl --search reset%20your%20password --search customer --folder .\*.eml --decode --stop --max_age 1200
 
 Search base path  : .\*.eml
 Search target for : reset your password

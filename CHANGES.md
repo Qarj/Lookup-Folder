@@ -1,6 +1,6 @@
-# SearchFolders change log
+# Lookup-Folder change log
 
-Tim Buckland, https://github.com/Qarj/LookupFolder
+Tim Buckland, https://github.com/Qarj/Lookup-Folder
 
 ---------------------------------------------------
 
