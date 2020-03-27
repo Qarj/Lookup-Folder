@@ -1,19 +1,19 @@
-# Lookup-Folder 0.06
-Search a Windows network folder for files containing multiple strings.
+# Lookup-Folder 0.7.0
+Search a folder for files containing multiple strings.
 
 The search strings are assumed to be URL encoded. There is an option to indicate
-that the files are encoded as quoted printable and should be decoded.
+that the files are encoded as quoted printable (i.e. SMTP email files) and should be decoded.
 
 This script is designed to be as fast as possible over WAN network shares.
 
 Be sure to put final \ if you are referring to folder rather than a file.
 That is to say `C:\Windows\` and not `C:\Windows`. 
 
-WARNING - Dates returned by Windows DIR command are assumed to be in European date format.
+Should work on Linux also.
 
 ### Example 1
 ```
-Lookup-Folder.pl --search print --search user1 --folder .\
+perl Lookup-Folder.pl --search print --search user1 --folder ./
 
 Search base path  : .\
 Search target for : print
@@ -66,7 +66,7 @@ Found 2 matching files out of 9 files searched
 ### Example 2 - decode quoted printable files
 
 ```
-Lookup-Folder.pl --search forgotten --search customer --folder .\*.eml --decode
+perl Lookup-Folder.pl --search forgotten --search customer --folder ./*.eml --decode
 
 Search base path  : .\*.eml
 Search target for : forgotten
@@ -102,7 +102,7 @@ Found 3 matching files out of 4 files searched
 ### Example 3 - search strings are URL encoded
 
 ```
-Lookup-Folder.pl --search reset%20your%20password --search customer --folder .\180.eml --decode
+perl Lookup-Folder.pl --search reset%20your%20password --search customer --folder ./180.eml --decode
 
 Search base path  : .\180.eml
 Search target for : reset your password

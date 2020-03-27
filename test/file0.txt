@@ -1,0 +1,3 @@
+hello
+friends
+world

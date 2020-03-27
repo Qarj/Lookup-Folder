@@ -4,15 +4,18 @@
 # $Revision$
 # $Date$
 
+# perl Lookup-Folder.pl --folder ./test/*.txt --search hello --search WORLD
+# perl Lookup-Folder.pl --folder ./test/*.txt --search hello --search WORLD --max_age 15
+# perl Lookup-Folder.pl --folder ./test/*.txt --search hello --search WORLD --stop
+
 use strict;
 use warnings;
 use vars qw/ $VERSION /;
 
-$VERSION = '0.06';
+$VERSION = '0.7.0';
 
 use File::Basename;
 use Time::HiRes 'time';
-use Time::Piece;
 use Getopt::Long;
 use MIME::QuotedPrint; # for decoding quoted-printable
 use File::Slurp;
@@ -24,16 +27,11 @@ get_options();
 
 decode_search_strings();
 
-#Example:
-#LookupFolder.pl --search forgotten --search customer --folder .\*.eml
-
-#To Implement:
-# - determine date format - use: echo. | date
-
 my $file_matches = 0;
 my $files_checked = 0;
 my (@files_to_check, @files_creation_time);
-my $current_time = Time::Piece->new;
+my $current_time = time;
+print "Current Time: $current_time\n";
 
 show_search_options();
 
@@ -52,36 +50,21 @@ sub build_list_of_files_to_check {
 
     my $start_time = time;
 
-    #dir folder /A-D /N /O-D /TC /-C
-    # /A-D  do not display directories
-    # /N    use new long list format with filenames on far right
-    # /O-D  sort by date/time with youngest first
-    # /TC   sort date/time is creation
-    # /-C   disable display of thousands separator for file size
-    # /4    display four-digit years
-    my @raw_files = (`dir /A-D /N /O-D /TC /-C /4 "$opt_folder"`);
-
-    #foreach (@raw_files) {
-    #    print "$_\n";
-    #}
+    my @raw_files = glob($opt_folder);
 
     my $i = 0;
     foreach (@raw_files) {
-        # regex matches date, time, file size then anything after that is the file name
-        if ($_ =~ m{^([\d/]+[ ]+[\d:]+)[ ]+[\d]+[ ](.+)}i ) {
-            $files_creation_time[$i] = Time::Piece->strptime($1, '%d/%m/%Y  %H:%M'); # european date format assumed
-            $files_to_check[$i] = $2;
-            #print "$files_creation_time[$i]:$files_to_check[$i]\n";
-            $i++;
-        }
+        $files_creation_time[$i] = (stat ($_))[9];
+        $files_to_check[$i] = $_;
+        print "$files_creation_time[$i]:$files_to_check[$i]\n";
+        $i++;
     }
 
-    # debug - check the file names captured
-    #for my $j (0 .. $#files_to_check) {
-    #    print "$files_creation_time[$j] ";
-    #    print "$files_to_check[$j]\n";
-    #}
-    #print "\n";
+    # Sort the files from newest to oldest
+    # This means we can stop reading the contents of files once we hit a specified age
+    my @idx = sort { $files_creation_time[$b] <=> $files_creation_time[$a] } 0 .. $#files_creation_time;
+    @files_creation_time = @files_creation_time[@idx];
+    @files_to_check = @files_to_check[@idx];
 
     my $run_time = (int(1000 * (time - $start_time)) / 1000);
     print "Built file list in $run_time seconds\n";
@@ -112,7 +95,7 @@ sub search_all_files {
         examine_file ($files_to_check[$i]);
         if (defined $opt_stop && ($file_matches > 0) ) {
             # option to stop after first match is enabled ...
-            last; # ... so we hot foot it outa here
+            last; # ... so do not process any more files
         }
     }
 
@@ -128,10 +111,10 @@ sub examine_file {
 
     my $raw_folder = dirname($opt_folder.'dummy');
 
-    my $text = read_file($raw_folder.q{\\}.$filename);
+    my $text = read_file($filename);
 
     if (defined $opt_decode) {
-        $text = decode_qp($text); ## decode the response output
+        $text = decode_qp($text); ## decode the response output assuming it was quoted printable (i.e. SMTP email format)
     }
 
     foreach my $search (@opt_search) {
