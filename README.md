@@ -6,8 +6,13 @@ that the files are encoded as quoted printable (i.e. SMTP email files) and shoul
 
 This script is designed to be as fast as possible over WAN network shares.
 
-Be sure to put final \ if you are referring to folder rather than a file.
-That is to say `C:\Windows\` and not `C:\Windows`. 
+Be sure to put final / if you are referring to folder rather than a file.
+That is to say `C:/Windows/` and not `C:/Windows`. 
+
+Note that you must use forward slashes even on Windows due to the way the `glob` function works.
+```
+perl Lookup-Folder.pl --folder //window.server/D$/mailroot/Pickup/* --search hello
+```
 
 Should work on Linux also.
 
@@ -15,7 +20,7 @@ Should work on Linux also.
 ```
 perl Lookup-Folder.pl --search print --search user1 --folder ./
 
-Search base path  : .\
+Search base path  : ./
 Search target for : print
 Search target for : user1
 Max file age mins : none
@@ -68,7 +73,7 @@ Found 2 matching files out of 9 files searched
 ```
 perl Lookup-Folder.pl --search forgotten --search customer --folder ./*.eml --decode
 
-Search base path  : .\*.eml
+Search base path  : ./*.eml
 Search target for : forgotten
 Search target for : customer
 Max file age mins : none
@@ -104,7 +109,7 @@ Found 3 matching files out of 4 files searched
 ```
 perl Lookup-Folder.pl --search reset%20your%20password --search customer --folder ./180.eml --decode
 
-Search base path  : .\180.eml
+Search base path  : ./180.eml
 Search target for : reset your password
 Search target for : customer
 Max file age mins : none
@@ -125,9 +130,9 @@ Found 1 matching files out of 1 files searched
 ### Example 4 - stop after first matching file found
 
 ```
-Lookup-Folder.pl --search reset%20your%20password --search customer --folder .\*.eml --decode --stop
+Lookup-Folder.pl --search reset%20your%20password --search customer --folder ./*.eml --decode --stop
 
-Search base path  : .\*.eml
+Search base path  : ./*.eml
 Search target for : reset your password
 Search target for : customer
 Max file age mins : none
@@ -154,9 +159,9 @@ Found 1 matching files out of 3 files searched
 ### Example 5 - stop if files too old
 
 ```
-Lookup-Folder.pl --search reset%20your%20password --search customer --folder .\*.eml --decode --stop --max_age 1200
+Lookup-Folder.pl --search reset%20your%20password --search customer --folder ./*.eml --decode --stop --max_age 1200
 
-Search base path  : .\*.eml
+Search base path  : ./*.eml
 Search target for : reset your password
 Search target for : customer
 Max file age mins : 1200

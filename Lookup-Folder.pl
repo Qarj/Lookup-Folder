@@ -7,6 +7,9 @@
 # perl Lookup-Folder.pl --folder ./test/*.txt --search hello --search WORLD
 # perl Lookup-Folder.pl --folder ./test/*.txt --search hello --search WORLD --max_age 15
 # perl Lookup-Folder.pl --folder ./test/*.txt --search hello --search WORLD --stop
+# perl Lookup-Folder.pl --folder //window.server/D$/mailroot/Pickup/* --search hello
+# 
+# Note the direction of the slashes in the last example.
 
 use strict;
 use warnings;
@@ -20,6 +23,7 @@ use Getopt::Long;
 use MIME::QuotedPrint; # for decoding quoted-printable
 use File::Slurp;
 use URI::Escape; # to convert the URL encoded search string to normal
+use File::Glob qw(bsd_glob);
 
 my (@opt_search, $opt_folder, $opt_stop, $opt_max_age, $opt_decode, $opt_version, $opt_help);
 
